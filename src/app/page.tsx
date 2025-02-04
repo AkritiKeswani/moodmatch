@@ -57,49 +57,53 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-8 max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold mb-8 text-center">MOODMATCH</h1>
+    <main className="min-h-screen px-4 py-16 max-w-xl mx-auto">
+      <h1 className="text-3xl font-normal tracking-tighter mb-16 text-center">
+        MOODMATCH
+      </h1>
       
-      <div className="space-y-6">
-        <div className="flex gap-4">
+      <div className="space-y-12">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <input
             type="text"
             value={mood}
             onChange={handleMoodChange}
             onKeyDown={handleKeyDown}
-            placeholder="Enter your mood (e.g., energetic, mellow, peaceful)"
-            className="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="How are you feeling?"
+            className="flex-1 px-0 py-2 bg-transparent border-b border-neutral-200 focus:outline-none focus:border-neutral-800 transition-all placeholder:text-neutral-400"
             aria-label="Mood input"
           />
           <button
             onClick={() => void searchSongs()}
             disabled={loading}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 text-sm border border-current hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors disabled:opacity-50"
           >
-            {loading ? 'Searching...' : 'Find Songs'}
+            {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
 
         {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="px-4 py-3 border border-neutral-200 text-sm">
+            {error}
+          </div>
         )}
 
         {songs.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Recommended Songs</h2>
-            <div className="grid gap-4">
+          <div className="space-y-8">
+            <h2 className="text-sm uppercase tracking-widest">Matches</h2>
+            <div className="space-y-2">
               {songs.map((song) => (
                 <div
                   key={song.id}
-                  className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 transition-colors"
+                  className="py-4 border-b border-neutral-100 last:border-0"
                 >
-                  <h3 className="font-medium">{song.metadata.track_name}</h3>
-                  <p className="text-gray-600">{song.metadata.artist_name}</p>
-                  <p className="text-sm text-gray-500">
-                    Match score: {(song.score * 100).toFixed(1)}%
-                  </p>
+                  <h3 className="font-medium mb-1">{song.metadata.track_name}</h3>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-neutral-600">{song.metadata.artist_name}</span>
+                    <span className="text-neutral-400">
+                      {(song.score * 100).toFixed(0)}%
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
