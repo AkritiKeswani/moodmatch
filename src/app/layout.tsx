@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'MOODMATCH',
+  title: 'MoodMatch',
   description: 'Discover music that matches your mood',
 };
 

@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Song {
   id: string;
-  score: number;
   metadata: {
     track_name: string;
     artist_name: string;
+    genres: string[];  // Added genres array
   };
 }
 
@@ -23,16 +22,18 @@ export default function Home() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !loading) {
       void searchSongs();
     }
   };
 
   const searchSongs = async (): Promise<void> => {
-    if (!mood.trim()) return;
+    const trimmedMood = mood.trim();
+    if (!trimmedMood) return;
     
     setLoading(true);
     setError('');
+    setSongs([]);
     
     try {
       const response = await fetch('/api/search', {
@@ -40,14 +41,19 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ mood }),
+        body: JSON.stringify({ mood: trimmedMood }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch songs');
+        throw new Error('Failed to find matching songs');
       }
 
       const data = await response.json();
+      
+      if (!data.matches?.length) {
+        throw new Error('No songs found for this mood');
+      }
+
       setSongs(data.matches);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -70,39 +76,56 @@ export default function Home() {
             onChange={handleMoodChange}
             onKeyDown={handleKeyDown}
             placeholder="How are you feeling?"
-            className="flex-1 px-0 py-2 bg-transparent border-b border-neutral-200 focus:outline-none focus:border-neutral-800 transition-all placeholder:text-neutral-400"
+            disabled={loading}
+            className="flex-1 px-0 py-2 bg-transparent border-b border-neutral-200 focus:outline-none focus:border-neutral-800 transition-all placeholder:text-neutral-400 disabled:opacity-50"
             aria-label="Mood input"
           />
           <button
             onClick={() => void searchSongs()}
-            disabled={loading}
+            disabled={loading || !mood.trim()}
             className="px-4 py-2 text-sm border border-current hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors disabled:opacity-50"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? 'Finding matches...' : 'Find matches'}
           </button>
         </div>
 
         {error && (
-          <div className="px-4 py-3 border border-neutral-200 text-sm">
+          <div className="px-4 py-3 border border-red-200 bg-red-50 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {songs.length > 0 && (
           <div className="space-y-8">
-            <h2 className="text-sm uppercase tracking-widest">Matches</h2>
+            <div className="space-y-4">
+              <h2 className="text-sm uppercase tracking-widest">
+                Songs matching your mood
+              </h2>
+              <p className="text-sm text-neutral-600">
+                Based on your music taste, here are some fresh recommendations that match how you're feeling:
+              </p>
+            </div>
             <div className="space-y-2">
               {songs.map((song) => (
                 <div
                   key={song.id}
-                  className="py-4 border-b border-neutral-100 last:border-0"
+                  className="py-4 px-4 border border-neutral-100 rounded-lg hover:border-neutral-200 transition-colors"
                 >
                   <h3 className="font-medium mb-1">{song.metadata.track_name}</h3>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-neutral-600">{song.metadata.artist_name}</span>
-                    <span className="text-neutral-400">
-                      {(song.score * 100).toFixed(0)}%
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm text-neutral-600">
+                      {song.metadata.artist_name}
                     </span>
+                    <div className="flex flex-wrap gap-2">
+                      {song.metadata.genres.map((genre, index) => (
+                        <span
+                          key={`${song.id}-genre-${index}`}
+                          className="px-2 py-1 text-xs bg-neutral-100 text-neutral-600 rounded-full"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
